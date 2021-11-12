@@ -1,0 +1,23 @@
+version: '3.3'
+
+networks:
+  logger_net:
+        ipam:
+            driver: default
+            config:
+                - subnet: 165.28.0.0/16
+services:
+  client:
+    entrypoint: /bin/bash
+    build: 
+        context: ../../
+        dockerfile: Dockerfile-compose
+    container_name: client      
+    volumes:
+      - ../../:/app
+    command: -c "./build.sh alpine && ./test_client.exe ${alpine_server}"
+    networks:
+      logger_net:
+         ipv4_address: 165.28.1.1
+    depends_on:
+      - server

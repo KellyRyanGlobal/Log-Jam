@@ -1,0 +1,74 @@
+pipeline {
+    agent { 
+            dockerfile {
+                filename 'Dockerfile'
+                dir "${DOCK_PATH}"
+            }
+    }
+    environment {
+        OS_HOST = "${OS_HOST}"
+        DOCKER_USER = credentials('docker-username')
+        DOCKER_PASS = credentials('docker-password')
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh '''
+                chmod +x build.sh
+                ./build.sh "${OS_HOST}"                
+                ./server.exe &
+                ./test_client.exe "${SERVER_IP}"
+                '''
+            }
+        }
+         stage('Smoke Test') {
+            steps {
+                ansiColor('vga') {
+                    sh '''
+                    chmod +x test/smoke/smoke.sh
+                    test/smoke/smoke.sh input/results.txt
+                    '''
+                }                
+            }
+        }
+        stage('Functional Test') {
+            steps {
+                ansiColor('vga') {
+                    sh '''
+                    chmod +x test/functional/functional.sh
+                    test/functional/functional.sh input/results.txt
+                     '''
+
+                }                
+            }
+        }
+        stage('Acceptance Test') {
+            steps {
+                ansiColor('vga') {
+                sh '''
+                chmod +x test/acceptance/acceptance.sh
+                test/acceptance/acceptance.sh input/results.txt
+                
+                '''
+                }
+            }
+        }
+        stage('cleanup') {
+            steps {
+                ansiColor('vga') {
+                sh '''
+                cd src
+                make clean                
+                '''
+                }
+            }
+        }
+     }
+    post { 
+        always { 
+            echo 'saving test results'
+            archiveArtifacts artifacts: 'input/results.txt', onlyIfSuccessful: false
+            archiveArtifacts artifacts: 'output/', onlyIfSuccessful: false
+        }
+    }
+}

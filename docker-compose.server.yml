@@ -1,0 +1,27 @@
+version: '3'
+
+networks:
+  logger_net:
+        ipam:
+            driver: default
+            config:
+                - subnet: 165.28.0.0/16
+services:
+  server:
+    entrypoint: /bin/bash
+    build: 
+        context: .
+        dockerfile: docker/alpine/Dockerfile.serv
+    container_name: server
+    command: -c "./build.sh alpine && ./server.exe"  
+    volumes:
+      - .:/app  
+    env_file: 
+      - docker/alpine/log.env
+    networks:
+      logger_net:
+          ipv4_address: "${server_ip}"
+    ports:
+      - "8050:8050"
+
+ 

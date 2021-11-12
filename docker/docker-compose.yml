@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+  alpine:
+    image: node:12-alpine
+    container_name: alpine
+    privileged: true
+    user: root
+    networks:
+      - jenkins
