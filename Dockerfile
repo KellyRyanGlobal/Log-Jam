@@ -1,6 +1,8 @@
-FROM alpine:latest AS Build
-ENTRYPOINT ["tail", "-f", "/dev/null"]
-RUN apk update && apk add doxygen g++ make bash
-COPY . /app
+FROM ubuntu:14.04
+RUN apt-get update 
+RUN apt-get install python3 -y
+RUN apt-get install python-pip -y
+RUN pip install python-pypi-mirror
 WORKDIR /app
-#CMD /bin/bash -c ' ./build.sh; /bin/bash'
+COPY pythonbuild.sh /app
+COPY requirements.txt /app
